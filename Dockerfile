@@ -47,7 +47,8 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
         libevent-pthreads-2.1-7t64 \
         libssl3t64 \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --create-home --uid 10001 dogecoin
+    && useradd --create-home --uid 10001 dogecoin \
+    && install -d -o dogecoin -g dogecoin /home/dogecoin/.dogecoin
 
 COPY --from=builder /opt/dogecoin/usr/local/ /usr/local/
 
@@ -57,6 +58,16 @@ RUN dogecoind --version \
     && dogecoin-tx -help
 
 USER dogecoin
+
+RUN datadir="$(mktemp -d)" \
+    && dogecoind -regtest -datadir="$datadir" -daemon \
+    && timeout 30 sh -c 'until dogecoin-cli -regtest -datadir="$1" getblockchaininfo >/dev/null 2>&1; do sleep 1; done' sh "$datadir" \
+    && address="$(dogecoin-cli -regtest -datadir="$datadir" getnewaddress)" \
+    && dogecoin-cli -regtest -datadir="$datadir" dumpprivkey "$address" >/dev/null \
+    && dogecoin-cli -regtest -datadir="$datadir" stop \
+    && timeout 30 sh -c 'while dogecoin-cli -regtest -datadir="$1" getblockchaininfo >/dev/null 2>&1; do sleep 1; done' sh "$datadir" \
+    && rm -rf "$datadir"
+
 VOLUME ["/home/dogecoin/.dogecoin"]
 EXPOSE 22555 22556 44555 44556 18444 18332
 
