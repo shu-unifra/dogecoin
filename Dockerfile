@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
         libboost-system-dev \
         libboost-test-dev \
         libboost-thread-dev \
+        libdb5.3++-dev \
         libevent-dev \
         libssl-dev \
         libtool \
@@ -25,7 +26,7 @@ WORKDIR /src
 COPY . .
 
 RUN ./autogen.sh \
-    && ./configure --disable-wallet --with-gui=no --disable-bench --disable-man \
+    && ./configure --with-gui=no --disable-bench --disable-man \
     && make -j"$(nproc)" \
     && make check -j"$(nproc)" VERBOSE=1 \
     && make install DESTDIR=/opt/dogecoin
@@ -41,6 +42,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
         libboost-program-options1.83.0 \
         libboost-system1.83.0 \
         libboost-thread1.83.0 \
+        libdb5.3++t64 \
         libevent-2.1-7t64 \
         libevent-pthreads-2.1-7t64 \
         libssl3t64 \
@@ -50,6 +52,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
 COPY --from=builder /opt/dogecoin/usr/local/ /usr/local/
 
 RUN dogecoind --version \
+    && dogecoind -help | grep -q -- '-disablewallet' \
     && dogecoin-cli --version \
     && dogecoin-tx -help
 
