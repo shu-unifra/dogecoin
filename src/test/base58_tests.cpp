@@ -4,6 +4,7 @@
 
 #include "base58.h"
 
+#include "chainparams.h"
 #include "data/base58_encode_decode.json.h"
 #include "data/base58_keys_invalid.json.h"
 #include "data/base58_keys_valid.json.h"
@@ -23,6 +24,21 @@
 extern UniValue read_json(const std::string& jsondata);
 
 BOOST_FIXTURE_TEST_SUITE(base58_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(base58_regtest_prefixes_match_testnet)
+{
+    const CChainParams& testnetParams = Params(CBaseChainParams::TESTNET);
+    const CChainParams& regtestParams = Params(CBaseChainParams::REGTEST);
+
+    for (int type = 0; type < CChainParams::MAX_BASE58_TYPES; ++type) {
+        const CChainParams::Base58Type prefixType = static_cast<CChainParams::Base58Type>(type);
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+            regtestParams.Base58Prefix(prefixType).begin(),
+            regtestParams.Base58Prefix(prefixType).end(),
+            testnetParams.Base58Prefix(prefixType).begin(),
+            testnetParams.Base58Prefix(prefixType).end());
+    }
+}
 
 // Goal: test low-level base58 encoding functionality
 BOOST_AUTO_TEST_CASE(base58_EncodeBase58)
@@ -268,4 +284,3 @@ BOOST_AUTO_TEST_CASE(base58_keys_invalid)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-

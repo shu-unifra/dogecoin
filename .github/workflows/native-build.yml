@@ -1,0 +1,53 @@
+name: Native Build
+
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - 'doc/**'
+      - 'contrib/**'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'doc/**'
+      - 'contrib/**'
+
+jobs:
+  linux:
+    name: Ubuntu native
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            automake \
+            autotools-dev \
+            bsdmainutils \
+            build-essential \
+            libboost-chrono-dev \
+            libboost-filesystem-dev \
+            libboost-program-options-dev \
+            libboost-system-dev \
+            libboost-test-dev \
+            libboost-thread-dev \
+            libevent-dev \
+            libssl-dev \
+            libtool \
+            pkg-config \
+            python3
+
+      - name: Configure
+        run: |
+          ./autogen.sh
+          ./configure --disable-wallet --with-gui=no --disable-bench
+
+      - name: Build
+        run: make -j"$(nproc)"
+
+      - name: Run unit tests
+        run: make check -j"$(nproc)" VERBOSE=1
