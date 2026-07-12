@@ -51,7 +51,7 @@ COPY --from=builder /opt/dogecoin/usr/local/ /usr/local/
 
 RUN dogecoind --version \
     && dogecoin-cli --version \
-    && dogecoin-tx --version
+    && dogecoin-tx -help
 
 USER dogecoin
 VOLUME ["/home/dogecoin/.dogecoin"]
